@@ -22,6 +22,10 @@ interface PostAttributes {
   authorId: number;
   createdAt?: Date;
   updatedAt?: Date;
+  // Eager loaded associations
+  comments?: any[];
+  likes?: any[];
+  author?: any;
 }
 
 interface PostCreationAttributes extends Optional<PostAttributes, 'id' | 'isPublished' | 'viewCount' | 'createdAt' | 'updatedAt'> {}
@@ -39,6 +43,10 @@ class Post extends Model<PostAttributes, PostCreationAttributes> implements Post
   public authorId!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  // Eager loaded associations
+  public comments?: any[];
+  public likes?: any[];
+  public author?: any;
 
   // Associations
   public getAuthor!: BelongsToGetAssociationMixin<any>;
@@ -53,22 +61,7 @@ class Post extends Model<PostAttributes, PostCreationAttributes> implements Post
     likes: Association<Post, any>;
   };
 
-  // Intentionally inefficient method that will cause N+1 queries
-  public async getCommentsWithAuthors(): Promise<any[]> {
-    const comments = await this.getComments();
-    const commentsWithAuthors = [];
-    
-    // N+1 Query Problem: This will make a separate query for each comment's author
-    for (const comment of comments) {
-      const author = await comment.getAuthor();
-      commentsWithAuthors.push({
-        ...comment.toJSON(),
-        author: author.toJSON()
-      });
-    }
-    
-    return commentsWithAuthors;
-  }
+  // Removed inefficient getCommentsWithAuthors method - now using eager loading in controllers
 }
 
 Post.init(
